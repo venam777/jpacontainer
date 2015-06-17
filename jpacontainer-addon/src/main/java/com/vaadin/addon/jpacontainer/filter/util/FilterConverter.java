@@ -15,39 +15,19 @@
  */
 package com.vaadin.addon.jpacontainer.filter.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import com.vaadin.addon.jpacontainer.filter.ExistFilter;
 import com.vaadin.addon.jpacontainer.filter.JoinFilter;
 import com.vaadin.addon.jpacontainer.util.CollectionUtil;
 import com.vaadin.data.Container.Filter;
-import com.vaadin.data.util.filter.And;
-import com.vaadin.data.util.filter.Between;
-import com.vaadin.data.util.filter.Compare;
+import com.vaadin.data.util.filter.*;
 import com.vaadin.data.util.filter.Compare.Equal;
 import com.vaadin.data.util.filter.Compare.Greater;
-import com.vaadin.data.util.filter.IsNull;
-import com.vaadin.data.util.filter.Like;
-import com.vaadin.data.util.filter.Not;
-import com.vaadin.data.util.filter.Or;
-import com.vaadin.data.util.filter.SimpleStringFilter;
+
+import javax.persistence.criteria.*;
+import java.util.*;
 
 /**
  * Converts a Vaadin 6.6 container filter into a JPA criteria predicate.
- * 
- * @param filter
- *            Vaadin 6.6 {@link Filter}
- * @return {@link Predicate}
- * 
  * @since 2.0
  */
 public class FilterConverter {
@@ -56,11 +36,35 @@ public class FilterConverter {
      * Interface for a converter that can convert a certain kind of
      * {@link Filter} to a {@link Predicate}.
      */
-    private interface Converter {
+    public interface Converter {
         public boolean canConvert(Filter filter);
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root);
+                From<X, Y> root, AbstractQuery query);
+    }
+
+    private static class ExistConverter implements Converter {
+
+        @Override
+        public boolean canConvert(Filter filter) {
+            return filter instanceof ExistFilter;
+        }
+
+        @Override
+        public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb, From<X, Y> root, AbstractQuery query) {
+            //query.select(root);
+            ExistFilter existFilter = (ExistFilter) filter;
+            Subquery subquery= query.subquery(existFilter.getDomainClass());
+            Root subRoot= subquery.from(existFilter.getDomainClass());
+            subquery.select(subRoot);
+            String property = existFilter.getPropertyName();
+            if (property != null && !property.equals("")) {
+                subquery.where(cb.and(cb.equal(subRoot.get(existFilter.getPropertyName()), root), cb.and(convertFiltersToArray(existFilter.getFilters(), cb, subRoot, subquery))));
+            } else {
+                subquery.where(cb.and(cb.and(convertFiltersToArray(existFilter.getFilters(), cb, subRoot, subquery))));
+            }
+            return cb.exists(subquery);
+        }
     }
 
     /**
@@ -72,9 +76,9 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             return cb.and(convertFiltersToArray(((And) filter).getFilters(),
-                    cb, root));
+                    cb, root, query));
         }
     }
 
@@ -87,9 +91,9 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             return cb.or(convertFiltersToArray(((Or) filter).getFilters(), cb,
-                    root));
+                    root, query));
         }
     }
 
@@ -103,7 +107,7 @@ public class FilterConverter {
 
         @SuppressWarnings({ "rawtypes", "unchecked" })
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             Compare compare = (Compare) filter;
             Expression propertyExpr = AdvancedFilterableSupport
                     .getPropertyPath(root, compare.getPropertyId());
@@ -111,7 +115,7 @@ public class FilterConverter {
                     && compare.getValue() == null) {
                 // Make an IS NULL instead if "= null" is passed
                 return convertFilter(new IsNull(compare.getPropertyId()), cb,
-                        root);
+                        root, query);
             }
             Expression valueExpr = cb.literal(compare.getValue());
             switch (compare.getOperation()) {
@@ -140,7 +144,7 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             return cb.isNull(AdvancedFilterableSupport.getPropertyPath(root,
                     ((IsNull) filter).getPropertyId()));
         }
@@ -155,7 +159,7 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             SimpleStringFilter stringFilter = (SimpleStringFilter) filter;
             String filterString = stringFilter.getFilterString();
             if (stringFilter.isOnlyMatchPrefix()) {
@@ -185,7 +189,7 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             Like like = (Like) filter;
             if (like.isCaseSensitive()) {
                 return cb.like(AdvancedFilterableSupport.getPropertyPath(root,
@@ -207,7 +211,7 @@ public class FilterConverter {
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             Between between = (Between) filter;
             Expression<? extends Comparable> field = AdvancedFilterableSupport
                     .getPropertyPath(root, between.getPropertyId());
@@ -225,11 +229,11 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             JoinFilter hibernateJoin = (JoinFilter) filter;
             From<X, Y> join = root.join(hibernateJoin.getJoinProperty());
             return cb.and(convertFiltersToArray(hibernateJoin.getFilters(), cb,
-                    join));
+                    join, query));
         }
 
     }
@@ -240,9 +244,9 @@ public class FilterConverter {
         }
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
-                From<X, Y> root) {
+                From<X, Y> root, AbstractQuery query) {
             Not not = (Not) filter;
-            return cb.not(convertFilter(not.getFilter(), cb, root));
+            return cb.not(convertFilter(not.getFilter(), cb, root, query));
         }
     }
 
@@ -251,7 +255,7 @@ public class FilterConverter {
         converters = Collections.unmodifiableCollection(Arrays.asList(
                 new AndConverter(), new OrConverter(), new CompareConverter(),
                 new IsNullConverter(), new SimpleStringFilterConverter(),
-                new LikeConverter(), new BetweenConverter(),
+                new LikeConverter(), new BetweenConverter(), new ExistConverter(),
                 new JoinFilterConverter(), new NotFilterConverter()));
     }
 
@@ -264,18 +268,19 @@ public class FilterConverter {
      *            the {@link CriteriaBuilder} to use when creating the
      *            {@link Predicate}
      * @param root
-     *            the {@link CriteriaQuery} {@link Root} to use for finding
+     *            the {@link AbstractQuery} {@link Root} to use for finding
      *            fields.
+     * @param query root query (to use, when you need to create subquery)
      * @return a {@link Predicate} representing the {@link Filter} or null if
      *         conversion failed.
      */
     public static <X, Y> Predicate convertFilter(Filter filter,
-            CriteriaBuilder criteriaBuilder, From<X, Y> root) {
+            CriteriaBuilder criteriaBuilder, From<X, Y> root, AbstractQuery query) {
         assert filter != null : "filter must not be null";
 
         for (Converter c : converters) {
             if (c.canConvert(filter)) {
-                return c.toPredicate(filter, criteriaBuilder, root);
+                return c.toPredicate(filter, criteriaBuilder, root, query);
             }
         }
 
@@ -292,18 +297,18 @@ public class FilterConverter {
      */
     public static <X, Y> List<Predicate> convertFilters(
             Collection<Filter> filters, CriteriaBuilder criteriaBuilder,
-            From<X, Y> root) {
+            From<X, Y> root, AbstractQuery query) {
         List<Predicate> result = new ArrayList<Predicate>();
         for (com.vaadin.data.Container.Filter filter : filters) {
-            result.add(convertFilter(filter, criteriaBuilder, root));
+            result.add(convertFilter(filter, criteriaBuilder, root, query));
         }
         return result;
     }
 
     private static <X, Y> Predicate[] convertFiltersToArray(
             Collection<Filter> filters, CriteriaBuilder criteriaBuilder,
-            From<X, Y> root) {
+            From<X, Y> root, AbstractQuery query) {
         return CollectionUtil.toArray(Predicate.class,
-                convertFilters(filters, criteriaBuilder, root));
+                convertFilters(filters, criteriaBuilder, root, query));
     }
 }

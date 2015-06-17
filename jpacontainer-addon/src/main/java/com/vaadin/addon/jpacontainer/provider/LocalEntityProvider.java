@@ -16,34 +16,7 @@
 
 package com.vaadin.addon.jpacontainer.provider;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.TransactionRequiredException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
-import com.vaadin.addon.jpacontainer.EntityContainer;
-import com.vaadin.addon.jpacontainer.EntityManagerProvider;
-import com.vaadin.addon.jpacontainer.EntityProvider;
-import com.vaadin.addon.jpacontainer.LazyLoadingDelegate;
-import com.vaadin.addon.jpacontainer.QueryModifierDelegate;
-import com.vaadin.addon.jpacontainer.SortBy;
+import com.vaadin.addon.jpacontainer.*;
 import com.vaadin.addon.jpacontainer.filter.util.AdvancedFilterableSupport;
 import com.vaadin.addon.jpacontainer.filter.util.FilterConverter;
 import com.vaadin.addon.jpacontainer.metadata.EntityClassMetadata;
@@ -56,6 +29,15 @@ import com.vaadin.data.util.filter.Compare.Equal;
 import com.vaadin.data.util.filter.Compare.Greater;
 import com.vaadin.data.util.filter.Compare.Less;
 import com.vaadin.data.util.filter.Or;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.TransactionRequiredException;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A read-only entity provider that works with a local {@link EntityManager}.
@@ -384,7 +366,7 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
 
         List<Predicate> predicates = new ArrayList<Predicate>();
         if (filter != null) {
-            predicates.add(FilterConverter.convertFilter(filter, cb, root));
+            predicates.add(FilterConverter.convertFilter(filter, cb, root, query));
         }
         tellDelegateFiltersWillBeAdded(container, cb, query, predicates);
         if (!predicates.isEmpty()) {
@@ -435,7 +417,7 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
         predicates.add(cb.equal(root.get(entityIdPropertyName),
                 cb.literal(entityId)));
         if (filter != null) {
-            predicates.add(FilterConverter.convertFilter(filter, cb, root));
+            predicates.add(FilterConverter.convertFilter(filter, cb, root, query));
         }
         tellDelegateFiltersWillBeAdded(container, cb, query, predicates);
         if (!predicates.isEmpty()) {
@@ -515,7 +497,7 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
 
         List<Predicate> predicates = new ArrayList<Predicate>();
         if (filter != null) {
-            predicates.add(FilterConverter.convertFilter(filter, cb, root));
+            predicates.add(FilterConverter.convertFilter(filter, cb, root, query));
         }
         tellDelegateFiltersWillBeAdded(container, cb, query, predicates);
         if (!predicates.isEmpty()) {
