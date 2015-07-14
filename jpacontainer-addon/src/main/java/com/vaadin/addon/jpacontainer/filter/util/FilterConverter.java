@@ -16,6 +16,7 @@
 package com.vaadin.addon.jpacontainer.filter.util;
 
 import com.vaadin.addon.jpacontainer.filter.ExistFilter;
+import com.vaadin.addon.jpacontainer.filter.InListFilter;
 import com.vaadin.addon.jpacontainer.filter.JoinFilter;
 import com.vaadin.addon.jpacontainer.util.CollectionUtil;
 import com.vaadin.data.Container.Filter;
@@ -41,6 +42,26 @@ public class FilterConverter {
 
         public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb,
                 From<X, Y> root, AbstractQuery query);
+    }
+
+    private static class InListConverter implements Converter {
+
+        @Override
+        public boolean canConvert(Filter filter) {
+            return filter instanceof InListFilter;
+        }
+
+        @Override
+        public <X, Y> Predicate toPredicate(Filter filter, CriteriaBuilder cb, From<X, Y> root, AbstractQuery query) {
+            InListFilter inListFilter = (InListFilter) filter;
+            Expression property = AdvancedFilterableSupport.getPropertyPath(root,
+                    inListFilter.getPropertyId());
+            CriteriaBuilder.In in = cb.in(property);
+            for (Object value: inListFilter.getValues()) {
+                in = in.value(value);
+            }
+            return in;
+        }
     }
 
     private static class ExistConverter implements Converter {
@@ -256,7 +277,7 @@ public class FilterConverter {
                 new AndConverter(), new OrConverter(), new CompareConverter(),
                 new IsNullConverter(), new SimpleStringFilterConverter(),
                 new LikeConverter(), new BetweenConverter(), new ExistConverter(),
-                new JoinFilterConverter(), new NotFilterConverter()));
+                new JoinFilterConverter(), new NotFilterConverter(), new InListConverter()));
     }
 
     /**
