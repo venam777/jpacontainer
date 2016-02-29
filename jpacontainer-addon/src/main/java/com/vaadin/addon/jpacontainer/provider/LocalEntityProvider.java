@@ -467,14 +467,9 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
         return result;
     }
 
-    //todo дефолтная реализация, нужно переопределить перед использованием
     protected List<T> findEntities(Collection entityIds) {
-        List<T> result = new LinkedList<>();
-        for (Object entityId : entityIds) {
-            result.add(doGetEntityManager().find(
-                    getEntityClassMetadata().getMappedClass(), entityId));
-        }
-        return result;
+        String query = "SELECT t FROM "+ entityClassMetadata.getMappedClass().getSimpleName() + " t WHERE t.id in :ids";
+        return entityManager.createQuery(query).setParameter("ids", entityIds).getResultList();
     }
 
     public T getEntity(EntityContainer<T> container, Object entityId) {
