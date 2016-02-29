@@ -21,6 +21,8 @@ import com.vaadin.data.Buffered;
 import com.vaadin.data.Container;
 import com.vaadin.data.Validator.InvalidValueException;
 
+import java.util.List;
+
 /**
  * A Container for {@link EntityItem}s. The data is provided by a
  * {@link EntityProvider}. Supports sorting, advanced filtering, nested
@@ -135,6 +137,8 @@ public interface EntityContainer<T> extends Container, Container.Sortable,
      * {@inheritDoc }
      */
     public EntityItem<T> getItem(Object itemId);
+
+    List<EntityItem<T>> getItems(List itemIds);
 
     /**
      * Returns whether the container is read only or writable.

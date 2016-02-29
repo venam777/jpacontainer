@@ -818,6 +818,56 @@ public class JPAContainer<T> implements EntityContainer<T>,
         }
     }
 
+    @Override
+    public List<EntityItem<T>> getItems(List itemIds) {
+        if (itemIds == null || itemIds.size() == 0) {
+            return null;
+        }
+        List<EntityItem<T>> result = new LinkedList<>();
+
+        if (isWriteThrough() || !bufferingDelegate.isModified()) {
+            List<T> entities = doGetEntityProvider().getEntities(this, itemIds);
+            for (T entity : entities) {
+                result.add(new JPAContainerItem<T>(this, entity));
+            }
+            return result;
+        } else {
+            List<Object> notBufferedEntityIds = new LinkedList<>();
+            for (Object itemId : itemIds) {
+                if (bufferingDelegate.isAdded(itemId)) {
+                    JPAContainerItem<T> item = new JPAContainerItem<T>(this,
+                            bufferingDelegate.getAddedEntity(itemId), itemId, false);
+                    result.add(item);
+                } else if (bufferingDelegate.isUpdated(itemId)) {
+                    JPAContainerItem<T> item = new JPAContainerItem<T>(this,
+                            bufferingDelegate.getUpdatedEntity(itemId));
+                    item.setDirty(true);
+                    result.add(item);
+                } else if (bufferingDelegate.isDeleted(itemId)) {
+                    T entity = doGetEntityProvider().getEntity(this, itemId);
+                    if (entity != null) {
+                        JPAContainerItem<T> item = new JPAContainerItem<T>(this,
+                                entity);
+                        item.setDeleted(true);
+                        result.add(item);
+                    } else {
+                        //todo нужно ли это?
+                        result.add(null);
+                    }
+                } else {
+                    notBufferedEntityIds.add(itemId);
+                }
+            }
+            if (notBufferedEntityIds.size() > 0) {
+                List<T> entities = doGetEntityProvider().getEntities(this, notBufferedEntityIds);
+                for (T entity : entities) {
+                    result.add(new JPAContainerItem<T>(this, entity));
+                }
+            }
+        }
+        return result;
+    }
+
     /**
      * Called by JPAContainerItem when item is created. Container can then keep
      * (weak) references to all instantiated items. Those are needed e.g. for

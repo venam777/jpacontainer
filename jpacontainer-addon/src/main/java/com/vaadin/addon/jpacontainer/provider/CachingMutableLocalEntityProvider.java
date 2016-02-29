@@ -112,6 +112,11 @@ public class CachingMutableLocalEntityProvider<T> extends
     }
 
     @Override
+    public synchronized List<T> getEntities(EntityContainer<T> entityContainer, List entityIds) {
+        return cachingSupport.getEntities(entityContainer, entityIds);
+    }
+
+    @Override
     public boolean isEntitiesDetached() {
         return isCacheEnabled() || super.isEntitiesDetached();
     }

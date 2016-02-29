@@ -457,12 +457,37 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
         return detachEntity(entity);
     }
 
+    protected List<T> doGetEntities(Collection entityIds) {
+        assert entityIds != null && entityIds.size() > 0 : "entityIds collection must not be null or empty";
+        Collection<T> entities = findEntities(entityIds);
+        List<T> result = new LinkedList<>();
+        for (T entity : entities) {
+          result.add(detachEntity(entity));
+        }
+        return result;
+    }
+
+    //todo дефолтная реализация, нужно переопределить перед использованием
+    protected List<T> findEntities(Collection entityIds) {
+        List<T> result = new LinkedList<>();
+        for (Object entityId : entityIds) {
+            result.add(doGetEntityManager().find(
+                    getEntityClassMetadata().getMappedClass(), entityId));
+        }
+        return result;
+    }
+
     public T getEntity(EntityContainer<T> container, Object entityId) {
         return doGetEntity(entityId);
     }
 
+    @Override
+    public List<T> getEntities(EntityContainer<T> entityContainer, List entityIds) {
+        return doGetEntities(entityIds);
+    }
+
     protected Object doGetEntityIdentifierAt(EntityContainer<T> container,
-            Filter filter, List<SortBy> sortBy, int index) {
+                                             Filter filter, List<SortBy> sortBy, int index) {
         if (sortBy == null) {
             sortBy = Collections.emptyList();
         }

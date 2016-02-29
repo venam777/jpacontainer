@@ -62,6 +62,8 @@ public interface EntityProvider<T> extends Serializable {
      */
     public T getEntity(EntityContainer<T> entityContainer, Object entityId);
 
+    public List<T> getEntities(EntityContainer<T> entityContainer, List entityIds);
+
     /**
      * If this method returns true, all entities returned from this entity
      * provider are explicitly detached from the persistence context before

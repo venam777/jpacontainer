@@ -41,7 +41,7 @@ import com.vaadin.data.Item;
  * Delegate class that implements caching for {@link LocalEntityProvider}s and
  * their subclasses. This class is internal and should never be used outside of
  * JPAContainer.
- * 
+ *
  * @author Petter Holmström (Vaadin Ltd)
  * @since 1.0
  */
@@ -75,7 +75,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * The max size of the filter cache (i.e. how many different filters to
      * cache).
-     * 
+     *
      * @see #getFilterCache()
      */
     public static final int MAX_FILTER_CACHE_SIZE = 10;
@@ -92,7 +92,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Creates a new <code>CachingSupport</code> for the specified entity
      * provider.
-     * 
+     *
      * @param entityProvider
      *            the entity provider (never null).
      */
@@ -104,7 +104,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Data structure used by {@link FilterCacheEntry} to store entityId lists
      * sorted in different ways.
-     * 
+     *
      * @author Petter Holmström (Vaadin Ltd)
      * @since 1.0
      */
@@ -120,7 +120,7 @@ class CachingSupport<T> implements Serializable {
      * This class represents a cache for a specific {@link Filter}. The class
      * contains counterparts of most of the methods defined in
      * {@link EntityProvider}.
-     * 
+     *
      * @author Petter Holmström (Vaadin Ltd)
      * @since 1.0
      */
@@ -136,7 +136,7 @@ class CachingSupport<T> implements Serializable {
 
         /**
          * Creates a new <code>FilterCacheEntry</code>.
-         * 
+         *
          * @param filter
          *            the filter for which this cache should be created.
          */
@@ -146,7 +146,7 @@ class CachingSupport<T> implements Serializable {
 
         /**
          * Gets the number of entities that match this particular filter.
-         * 
+         *
          * @return the number of entities.
          */
         public synchronized int getEntityCount(EntityContainer<T> container) {
@@ -306,7 +306,7 @@ class CachingSupport<T> implements Serializable {
          * (changed or removed). If the entityId is currently in cache, the
          * cache is flushed, forcing the data to be fetched from the database
          * when requested the next time.
-         * 
+         *
          * @param entityId
          *            the entityId to invalidate.
          */
@@ -415,7 +415,7 @@ class CachingSupport<T> implements Serializable {
 
         /**
          * Gets the filter for which this cache has been created.
-         * 
+         *
          * @return the filter (may be null).
          */
         public Filter getFilter() {
@@ -425,7 +425,7 @@ class CachingSupport<T> implements Serializable {
 
     /**
      * TODO Document me!
-     * 
+     *
      * @param entityId
      * @param updated
      */
@@ -443,7 +443,7 @@ class CachingSupport<T> implements Serializable {
 
     /**
      * TODO Document me!
-     * 
+     *
      * @param entity
      */
     public synchronized void entityAdded(T entity) {
@@ -460,7 +460,7 @@ class CachingSupport<T> implements Serializable {
      * <code>sortBy</code>, starting with the identifier at position
      * <code>startFrom</code> and retrieving a maximum number of
      * <code>fetchMax</code> items.
-     * 
+     *
      * @param filter
      *            the filter to apply, if any (may be null).
      * @param sortBy
@@ -493,7 +493,7 @@ class CachingSupport<T> implements Serializable {
      * <code>fetchMax</code> items. If <code>startFrom</code> is at position n,
      * then item n+1 will be the first item in the returnde list, n+2 the
      * second, etc.
-     * 
+     *
      * @param filter
      *            the filter to apply, if any (may be null).
      * @param sortBy
@@ -522,7 +522,7 @@ class CachingSupport<T> implements Serializable {
      * <code>fetchMax</code> items. If <code>startFrom</code> is at position n,
      * then item n-1 will be the first item in the returned list, n-2 the
      * second, etc.
-     * 
+     *
      * @param filter
      *            the filter to apply, if any (may be null).
      * @param sortBy
@@ -550,7 +550,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * A hash map that will remove the oldest items once its size reaches a
      * specified max size.
-     * 
+     *
      * @author Petter Holmström (Vaadin Ltd)
      * @since 1.0
      */
@@ -579,7 +579,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * A hash set that will remove the oldest items once its size reaches a
      * specified max size.
-     * 
+     *
      * @author Petter Holmström (Vaadin Ltd)
      * @since 1.0
      */
@@ -608,7 +608,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Gets the cache for entity instances. If no cache exists, it will be
      * created.
-     * 
+     *
      * @return the entity cache (never null).
      */
     synchronized Map<Object, T> getEntityCache() {
@@ -621,7 +621,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Gets the cache for filter results. If no cache exists, it will be
      * created.
-     * 
+     *
      * @return the filter cache (never null).
      */
     synchronized Map<Filter, FilterCacheEntry> getFilterCache() {
@@ -635,7 +635,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Gets the cache entry for the specified filter. If no cache entry exists,
      * it will be created.
-     * 
+     *
      * @param filter
      *            the filter whose cache entry to fetch (may be null).
      * @return the filter cache entry (never null).
@@ -669,7 +669,7 @@ class CachingSupport<T> implements Serializable {
      * Check whether caching is possible or not. Caching is not possible if
      * there is a {@link QueryModifierDelegate}, that modifies the filters
      * applied to queries, attached to the entity provider.
-     * 
+     *
      * @return true if caching is possible
      */
     public boolean isCachingPossible(EntityContainer<T> container) {
@@ -695,7 +695,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Only returns true if both {@link #isCacheEnabled()} and
      * {@link #isCachingPossible()} are true.
-     * 
+     *
      * @return true if the caching mechanism is actually used.
      */
     public boolean usesCache(EntityContainer<T> container) {
@@ -708,7 +708,7 @@ class CachingSupport<T> implements Serializable {
 
     /**
      * Turns the cache on or off.
-     * 
+     *
      * @param cacheEnabled
      *            true to turn on the cache, false to turn it off.
      */
@@ -722,7 +722,7 @@ class CachingSupport<T> implements Serializable {
     /**
      * Sets the maximum number of items to keep in each cache. This method will
      * cause any existing caches to be flushed and re-created.
-     * 
+     *
      * @param maxSize
      *            the maximum cache size to set.
      */
@@ -772,10 +772,39 @@ class CachingSupport<T> implements Serializable {
         }
     }
 
+    public synchronized List<T> getEntities(EntityContainer<T> container, List entityIds) {
+        List<T> result = new LinkedList<>();
+        List<Object> notLoadedEntityIds = new LinkedList<>();
+        if (usesCache(container)) {
+            //сначала собираем сущности, которых нет в кеше
+            for (Object entityId : entityIds) {
+                T entity = getEntityCache().get(entityId);
+                if (entity == null) {
+                    // если сущности нет в кеше - помечаем, что она не загружена
+                    notLoadedEntityIds.add(entityId);
+                }
+            }
+            //если есть сущности, которых нет в кеше - вытаскиваем их пачкой и помещаем в кеш
+            if (notLoadedEntityIds.size() > 0) {
+                List<T> entities = entityProvider.getEntities(container, notLoadedEntityIds);
+                for (Object entityId : notLoadedEntityIds) {
+                    getEntityCache().put(entityId, entities.get(notLoadedEntityIds.indexOf(entityId)));
+                }
+            }
+            for (Object entityId : entityIds) {
+                T entity = getEntityCache().get(entityId);
+                result.add(cloneEntityIfNeeded(entity));
+            }
+            return result;
+        } else {
+            return entityProvider.getEntities(container, entityIds);
+        }
+    }
+
     /**
      * Returns a clone of <code>entity</code> if
      * {@link #isCloneCachedEntities() } is true.
-     * 
+     *
      * @param entity
      *            the entity to clone (must not be null and must be an instance
      *            of {@link Cloneable}).
