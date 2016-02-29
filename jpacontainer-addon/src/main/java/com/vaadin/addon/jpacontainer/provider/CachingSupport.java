@@ -786,7 +786,7 @@ class CachingSupport<T> implements Serializable {
             }
             //если есть сущности, которых нет в кеше - вытаскиваем их пачкой и помещаем в кеш
             if (notLoadedEntityIds.size() > 0) {
-                List<T> entities = entityProvider.getEntities(container, notLoadedEntityIds);
+                List<T> entities = entityProvider.doGetEntities(notLoadedEntityIds);
                 for (Object entityId : notLoadedEntityIds) {
                     getEntityCache().put(entityId, entities.get(notLoadedEntityIds.indexOf(entityId)));
                 }
@@ -797,7 +797,7 @@ class CachingSupport<T> implements Serializable {
             }
             return result;
         } else {
-            return entityProvider.getEntities(container, entityIds);
+            return entityProvider.doGetEntities(entityIds);
         }
     }
 
