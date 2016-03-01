@@ -827,8 +827,20 @@ public class JPAContainer<T> implements EntityContainer<T>,
 
         if (isWriteThrough() || !bufferingDelegate.isModified()) {
             List<T> entities = doGetEntityProvider().getEntities(this, itemIds);
+            //todo бывают ситуации, когда полсписка сущностей не загружается и вместо них null, хотя они есть в БД. непонятно почему...
+            if (entities.contains(null)) {
+                entities = doGetEntityProvider().getEntities(this, itemIds);
+            }
             for (T entity : entities) {
-                result.add(new JPAContainerItem<T>(this, entity));
+                if (entity != null) {
+                    result.add(new JPAContainerItem<T>(this, entity));
+                }
+            }
+            if (result.size() != itemIds.size()) {
+                Logger.getLogger(getClass().getName())
+                        .warning(
+                                "(JPAContainer) WARNING! getItems(itemIds) returned not all needed items! Need "
+                                        + itemIds.size() + " items, but returned only " + result.size() + " not-null items");
             }
             return result;
         } else {
@@ -1800,12 +1812,52 @@ public class JPAContainer<T> implements EntityContainer<T>,
     }
 
     public List<?> getItemIds(int startIndex, int numberOfItems) {
-        // FIXME this should be optimized
-        ArrayList<Object> ids = new ArrayList<Object>();
-        for (int i = 0; i < numberOfItems; i++) {
-            ids.add(getIdByIndex(startIndex + i));
+        if (isWriteThrough()) {
+            return doGetEntityProvider().getEntityIdentifiersByIndexes(this,
+                    getAppliedFiltersAsConjunction(), getSortByList(), startIndex, numberOfItems);
+        } else {
+            List result = new LinkedList();
+            List<Integer> indexesToFind = new LinkedList<>();
+            List addedItemList = bufferingDelegate.getAddedItemIds();
+            int addedItems = addedItemList.size();
+            for (int i = 0; i < numberOfItems; i++) {
+                int index = i + startIndex;
+                if (index < addedItems) {
+                    result.add(addedItemList.get(index));
+                } else {
+                    index -= addedItems;
+                    index = bufferingDelegate.fixDbIndexWithDeletedItems(index);
+                    indexesToFind.add(index);
+                }
+            }
+            if (indexesToFind.size() > 0) {
+                //нужно разбить
+                boolean needToSplit = false;
+                for (int i = 1; i < indexesToFind.size() && !needToSplit; i++) {
+                    if (Math.abs(indexesToFind.get(i) - indexesToFind.get(i-1)) != 1) {
+                        needToSplit = true;
+                    }
+                }
+                if (!needToSplit) {
+                    result.addAll(doGetEntityProvider().getEntityIdentifiersByIndexes(this,
+                            getAppliedFiltersAsConjunction(), getSortByList(), startIndex, numberOfItems));
+                    return result;
+                } else {
+                    int i = 0;
+                    while (i < indexesToFind.size()) {
+                        int j;
+                        for (j = i + 1; j < indexesToFind.size() && Math.abs(indexesToFind.get(j) - indexesToFind.get(j-1)) == 1; j++) {}
+                        result.addAll(doGetEntityProvider().getEntityIdentifiersByIndexes(this,
+                                getAppliedFiltersAsConjunction(), getSortByList(), indexesToFind.get(i), j - i));
+                        i+= j;
+                    }
+                    return result;
+                }
+            } else {
+                return result;
+            }
+
         }
-        return ids;
     }
 
     @Override

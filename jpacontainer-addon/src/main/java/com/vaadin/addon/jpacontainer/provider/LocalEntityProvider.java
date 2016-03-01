@@ -23,6 +23,7 @@ import com.vaadin.addon.jpacontainer.metadata.EntityClassMetadata;
 import com.vaadin.addon.jpacontainer.metadata.MetadataFactory;
 import com.vaadin.addon.jpacontainer.metadata.PropertyKind;
 import com.vaadin.addon.jpacontainer.util.CollectionUtil;
+import com.vaadin.data.Container;
 import com.vaadin.data.Container.Filter;
 import com.vaadin.data.util.filter.And;
 import com.vaadin.data.util.filter.Compare.Equal;
@@ -500,9 +501,32 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
         }
     }
 
+    protected List<Object> doGetEntityIdentifiersByIndexes(EntityContainer<T> container, Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount) {
+        if (sortBy == null) {
+            sortBy = Collections.emptyList();
+        }
+        TypedQuery<Object> query = createFilteredQuery(container,
+                Arrays.asList(getEntityClassMetadata().getIdentifierProperty()
+                        .getName()), filter, addPrimaryKeyToSortList(sortBy),
+                false);
+        query.setMaxResults(itemsCount - startIndex);
+        query.setFirstResult(startIndex);
+        List<Object> result = query.getResultList();
+        if (result.isEmpty()) {
+            return null;
+        } else {
+            return result;
+        }
+    }
+
     public Object getEntityIdentifierAt(EntityContainer<T> container,
             Filter filter, List<SortBy> sortBy, int index) {
         return doGetEntityIdentifierAt(container, filter, sortBy, index);
+    }
+
+    @Override
+    public List<Object> getEntityIdentifiersByIndexes(EntityContainer<T> entityContainer, Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount) {
+        return doGetEntityIdentifiersByIndexes(entityContainer, filter, sortBy, startIndex, itemsCount);
     }
 
     protected int doGetEntityCount(EntityContainer<T> container, Filter filter) {

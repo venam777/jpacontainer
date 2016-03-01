@@ -774,21 +774,21 @@ class CachingSupport<T> implements Serializable {
 
     public synchronized List<T> getEntities(EntityContainer<T> container, List entityIds) {
         List<T> result = new LinkedList<>();
-        List<Object> notLoadedEntityIds = new LinkedList<>();
+        boolean hasNotLoadedEntities = false;
         if (usesCache(container)) {
             //сначала собираем сущности, которых нет в кеше
             for (Object entityId : entityIds) {
                 T entity = getEntityCache().get(entityId);
                 if (entity == null) {
                     // если сущности нет в кеше - помечаем, что она не загружена
-                    notLoadedEntityIds.add(entityId);
+                    hasNotLoadedEntities = true;
                 }
             }
             //если есть сущности, которых нет в кеше - вытаскиваем их пачкой и помещаем в кеш
-            if (notLoadedEntityIds.size() > 0) {
-                List<T> entities = entityProvider.doGetEntities(notLoadedEntityIds);
-                for (Object entityId : notLoadedEntityIds) {
-                    getEntityCache().put(entityId, entities.get(notLoadedEntityIds.indexOf(entityId)));
+            if (hasNotLoadedEntities) {
+                List<T> entities = entityProvider.doGetEntities(entityIds);
+                for (T entity : entities) {
+                    getEntityCache().put(entityProvider.getIdentifier(entity), entity);
                 }
             }
             for (Object entityId : entityIds) {
@@ -868,6 +868,23 @@ class CachingSupport<T> implements Serializable {
         } else {
             return entityProvider.doGetEntityIdentifierAt(container, filter,
                     sortBy, index);
+        }
+    }
+
+    public List<Object> getEntityIdentifiersByIndexes(EntityContainer<T> container,
+                                        Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount) {
+        if (sortBy == null) {
+            sortBy = Collections.emptyList();
+        }
+        if (usesCache(container)) {
+            List result = new LinkedList();
+            for (int i = 0; i< itemsCount; i++) {
+                result.add(getFilterCacheEntry(filter).getIdAt(container, sortBy, startIndex + i));
+            }
+            return result;
+        } else {
+            return entityProvider.doGetEntityIdentifiersByIndexes(container, filter,
+                    sortBy, startIndex, itemsCount);
         }
     }
 

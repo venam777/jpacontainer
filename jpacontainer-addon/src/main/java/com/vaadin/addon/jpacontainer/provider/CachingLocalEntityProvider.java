@@ -23,6 +23,7 @@ import javax.persistence.EntityManager;
 import com.vaadin.addon.jpacontainer.CachingEntityProvider;
 import com.vaadin.addon.jpacontainer.EntityContainer;
 import com.vaadin.addon.jpacontainer.SortBy;
+import com.vaadin.data.Container;
 import com.vaadin.data.Container.Filter;
 
 /**
@@ -143,6 +144,11 @@ public class CachingLocalEntityProvider<T> extends LocalEntityProvider<T>
     public Object getEntityIdentifierAt(EntityContainer<T> container, Filter filter, List<SortBy> sortBy,
             int index) {
         return cachingSupport.getEntityIdentifierAt(container, filter, sortBy, index);
+    }
+
+    @Override
+    public List<Object> getEntityIdentifiersByIndexes(EntityContainer<T> entityContainer, Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount) {
+        return cachingSupport.getEntityIdentifiersByIndexes(entityContainer, filter, sortBy, startIndex, itemsCount);
     }
 
     @Override

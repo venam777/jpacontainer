@@ -142,6 +142,11 @@ public class CachingMutableLocalEntityProvider<T> extends
     }
 
     @Override
+    public List<Object> getEntityIdentifiersByIndexes(EntityContainer<T> entityContainer, Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount) {
+        return cachingSupport.getEntityIdentifiersByIndexes(entityContainer, filter, sortBy, startIndex, itemsCount);
+    }
+
+    @Override
     public Object getFirstEntityIdentifier(EntityContainer<T> container, Filter filter, List<SortBy> sortBy) {
         return cachingSupport.getFirstEntityIdentifier(container, filter, sortBy);
     }

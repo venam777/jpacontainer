@@ -114,6 +114,17 @@ public interface EntityProvider<T> extends Serializable {
             Filter filter, List<SortBy> sortBy, int index);
 
     /**
+     * Получает идентификаторы сущностей по их индексам
+     * @param entityContainer контейнер
+     * @param filter фильтр
+     * @param sortBy порядок сортировки: поле и флаг убывания\возрастания
+     * @param startIndex начальный индекс
+     * @param itemsCount кол-во требуемых сущностей
+     * @return список ид-шников требуемых сущностей
+     */
+    public List<Object> getEntityIdentifiersByIndexes(EntityContainer<T> entityContainer,
+                                                      Filter filter, List<SortBy> sortBy, int startIndex, int itemsCount);
+    /**
      * Gets the identifier of the first item in the list of entities determined
      * by <code>filter</code> and <code>sortBy</code>.
      * 
