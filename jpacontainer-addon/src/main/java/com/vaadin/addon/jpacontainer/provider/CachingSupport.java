@@ -774,19 +774,19 @@ class CachingSupport<T> implements Serializable {
 
     public synchronized List<T> getEntities(EntityContainer<T> container, List entityIds) {
         List<T> result = new LinkedList<>();
-        boolean hasNotLoadedEntities = false;
+        List<Object> notLoadedIds = new LinkedList<>();
         if (usesCache(container)) {
             //сначала собираем сущности, которых нет в кеше
             for (Object entityId : entityIds) {
                 T entity = getEntityCache().get(entityId);
                 if (entity == null) {
                     // если сущности нет в кеше - помечаем, что она не загружена
-                    hasNotLoadedEntities = true;
+                    notLoadedIds.add(entityId);
                 }
             }
             //если есть сущности, которых нет в кеше - вытаскиваем их пачкой и помещаем в кеш
-            if (hasNotLoadedEntities) {
-                List<T> entities = entityProvider.doGetEntities(entityIds);
+            if (notLoadedIds.size() > 0) {
+                List<T> entities = entityProvider.doGetEntities(notLoadedIds);
                 for (T entity : entities) {
                     getEntityCache().put(entityProvider.getIdentifier(entity), entity);
                 }

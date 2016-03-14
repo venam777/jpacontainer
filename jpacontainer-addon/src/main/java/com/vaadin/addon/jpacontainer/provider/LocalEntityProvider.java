@@ -458,14 +458,17 @@ public class LocalEntityProvider<T> implements EntityProvider<T>, Serializable {
         return detachEntity(entity);
     }
 
-    protected List<T> doGetEntities(Collection entityIds) {
-        assert entityIds != null && entityIds.size() > 0 : "entityIds collection must not be null or empty";
-        Collection<T> entities = findEntities(entityIds);
+    protected List<T> detachAll(List<T> entities) {
         List<T> result = new LinkedList<>();
         for (T entity : entities) {
-          result.add(detachEntity(entity));
+            result.add(detachEntity(entity));
         }
         return result;
+    }
+
+    protected List<T> doGetEntities(Collection entityIds) {
+        assert entityIds != null && entityIds.size() > 0 : "entityIds collection must not be null or empty";
+        return detachAll(findEntities(entityIds));
     }
 
     protected List<T> findEntities(Collection entityIds) {
