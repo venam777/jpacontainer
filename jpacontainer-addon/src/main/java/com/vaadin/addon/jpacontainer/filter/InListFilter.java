@@ -22,7 +22,8 @@ import com.vaadin.data.Item;
 import com.vaadin.data.util.filter.AbstractJunctionFilter;
 import com.vaadin.data.util.filter.Compare;
 
-import java.util.Collection;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  */
@@ -34,9 +35,16 @@ public class InListFilter extends AbstractJunctionFilter {
     public InListFilter(String propertyId, Collection values) {
         this.propertyId = propertyId;
         this.values = values;
-        filters.clear();
+        List<Container.Filter> f = new LinkedList<>();
         for (Object value : values) {
-            filters.add(new Compare.Equal(propertyId,value));
+            f.add(new Compare.Equal(propertyId,value));
+        }
+        try {
+            Field field = AbstractJunctionFilter.class.getDeclaredField("filters");
+            field.setAccessible(true);
+            field.set(this, Collections.unmodifiableCollection(f));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 
