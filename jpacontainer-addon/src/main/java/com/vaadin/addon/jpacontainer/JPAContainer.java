@@ -1761,6 +1761,31 @@ public class JPAContainer<T> implements EntityContainer<T>,
         }
     }
 
+    /**
+     * Обновляет итем в контейнере.
+     * Метод необходим, если над entity, на которую ссылается item, были проделаны операции изменения извне (например, через сервис)
+     * @param itemId ид итема
+     * @param operation операция, которая была выполнена над entity. Возможные варианты: "create", "delete", "update"
+     */
+    public void refreshItem(Object itemId, String operation) {
+        //refreshItem(itemId);
+        ItemSetChangeEvent event = null;
+        if (operation.toLowerCase().equals("create")) {
+            event = new ItemAddedEvent(itemId);
+        } else if (operation.toLowerCase().equals("update")) {
+            event = new ItemUpdatedEvent(itemId);
+        } else if (operation.toLowerCase().equals("delete")) {
+            event = new ItemRemovedEvent(itemId);
+        }
+        JPAContainerItem item = (JPAContainerItem) getItem(itemId);
+        if (item != null) {
+            item.refresh();
+        }
+        if (event != null) {
+            fireContainerItemSetChange(event);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 

@@ -4,7 +4,7 @@
 
     <groupId>com.vaadin.addon</groupId>
     <artifactId>jpacontainer</artifactId>
-    <version>3.2.0.2-SNAPSHOT-bft</version>
+    <version>3.2.0.3-SNAPSHOT-bft</version>
     <packaging>jar</packaging>
 
     <name>Vaadin JPAContainer Add-on</name>
@@ -15,9 +15,9 @@
     </organization>
     <url>http://vaadin.com/</url>
     <scm>
-        <connection>scm:git:git@github.com:vaadin/jpacontainer.git</connection>
-        <developerConnection>scm:git:git@github.com:vaadin/jpacontainer.git</developerConnection>
-        <url>https://github.com/vaadin/jpacontainer</url>
+        <connection>scm:git@github.com:venam777/jpacontainer.git</connection>
+        <developerConnection>scm:git@github.com:venam777/jpacontainer.git</developerConnection>
+        <url>https://github.com/venam777/jpacontainer.git</url>
     </scm>
     <issueManagement>
         <system>trac</system>
@@ -54,7 +54,8 @@
         <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
 
         <vaadin.version>7.2.0</vaadin.version>
-        <snapshot.repository.url>http://oss.sonatype.org/content/repositories/vaadin-snapshots/</snapshot.repository.url>
+        <!--<snapshot.repository.url>http://oss.sonatype.org/content/repositories/vaadin-snapshots/-->
+        <!--</snapshot.repository.url>-->
         <hibernate-version>4.1.9.Final</hibernate-version>
     </properties>
 
@@ -77,14 +78,12 @@
 
     <distributionManagement>
         <repository>
-            <id>vaadin-staging</id>
-            <name>Vaadin release staging repository</name>
-            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>nexus.control.local</id>
+            <url>http://172.21.0.127:8081/nexus/content/repositories/vaadin-addons</url>
         </repository>
         <snapshotRepository>
-            <id>vaadin-snapshots</id>
-            <name>Vaadin snapshot repository</name>
-            <url>${snapshot.repository.url}</url>
+            <id>nexus.control.local</id>
+            <url>http://172.21.0.127:8081/nexus/content/repositories/vaadin-addons-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -226,8 +225,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -264,6 +263,7 @@
                     <forkMode>pertest</forkMode>
                     <argLine>-Xms256m -Xmx1g</argLine>
                     <testFailureIgnore>false</testFailureIgnore>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
             <plugin>
