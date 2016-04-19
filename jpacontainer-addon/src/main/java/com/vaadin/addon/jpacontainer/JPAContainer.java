@@ -1843,22 +1843,25 @@ public class JPAContainer<T> implements EntityContainer<T>,
         } else {
             List result = new LinkedList();
             List<Integer> indexesToFind = new LinkedList<>();
-            List addedItemList = bufferingDelegate.getAddedItemIds();
-            int addedItems = addedItemList.size();
+            List addedItems = bufferingDelegate.getAddedItemIds();
             for (int i = 0; i < numberOfItems; i++) {
                 int index = i + startIndex;
-                if (index < addedItems) {
-                    result.add(addedItemList.get(index));
+                //добавленные итемы в bufferingDelegate располагаются сверху. поэтому если индекс находится в диапазоне от 0 до addedItems.size() -
+                //значит, берем ид итема из addedItems
+                if (index < addedItems.size()) {
+                    result.add(addedItems.get(index));
                 } else {
-                    index -= addedItems;
+                    index -= addedItems.size();
                     index = bufferingDelegate.fixDbIndexWithDeletedItems(index);
                     indexesToFind.add(index);
                 }
             }
+            numberOfItems -= result.size();
             if (indexesToFind.size() > 0) {
                 //нужно разбить
                 boolean needToSplit = false;
                 for (int i = 1; i < indexesToFind.size() && !needToSplit; i++) {
+                    //если индексы идут не по порядку друг за другом, а есть разрывы - помечаем флагом, что массив ид-шников нужно собирать из нескольких частей
                     if (Math.abs(indexesToFind.get(i) - indexesToFind.get(i-1)) != 1) {
                         needToSplit = true;
                     }
