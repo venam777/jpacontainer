@@ -1868,7 +1868,7 @@ public class JPAContainer<T> implements EntityContainer<T>,
                 }
                 if (!needToSplit) {
                     result.addAll(doGetEntityProvider().getEntityIdentifiersByIndexes(this,
-                            getAppliedFiltersAsConjunction(), getSortByList(), startIndex, numberOfItems));
+                            getAppliedFiltersAsConjunction(), getSortByList(), indexesToFind.get(0), indexesToFind.size()));
                     return result;
                 } else {
                     int i = 0;

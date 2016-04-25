@@ -17,14 +17,7 @@
 package com.vaadin.addon.jpacontainer;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -343,6 +336,7 @@ final class BufferedContainerDelegate<T> implements Serializable {
         Integer[] removedDbIndexes = new Integer[deletedItemIdsCache.size()];
         removedDbIndexes = deletedItemIdsCache.values().toArray(
                 removedDbIndexes);
+        Arrays.sort(removedDbIndexes);
         return removedDbIndexes;
     }
 }
